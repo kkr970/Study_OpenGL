@@ -6,7 +6,7 @@
                 "${workspaceFolder}",
                 "${workspaceFolder}/dependencies/GLFW/include",
                 "${workspaceFolder}/dependencies/GLAD/include",
-                "${workspaceFolder}/dependencies/GLM"
+                "${workspaceFolder}/dependencies/GLM",
             ],
             "defines": [
                 "_DEBUG",
