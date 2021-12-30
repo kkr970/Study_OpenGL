@@ -33,7 +33,7 @@ int main(){
         return -1;
     }
 
-    //Shader 작성
+    //Shader
     Shader ourShader("src/shaders/6shader.vs", "src/shaders/6shader.fs");
 
     //vertex데이터 작성

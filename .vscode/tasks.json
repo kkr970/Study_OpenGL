@@ -15,7 +15,7 @@
                 "${workspaceRoot}/src/${fileBasenameNoExtension}.cpp",
 
                 "${workspaceRoot}/dependencies/GLAD/src/glad.c",
-
+                
                 "-g",
                 "-I${workspaceRoot}/dependencies/GLFW/include",
                 "-I${workspaceFolder}/dependencies/GLAD/include",
