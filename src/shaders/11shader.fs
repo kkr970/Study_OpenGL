@@ -1,0 +1,18 @@
+#version 460 core
+
+out vec4 FragColor;
+
+in vec2 TexCoord;
+
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+uniform sampler2D texture3;
+uniform bool isWall;
+
+void main()
+{
+   if(!isWall)
+      FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2f);
+   else
+      FragColor = texture(texture3, TexCoord);
+}
