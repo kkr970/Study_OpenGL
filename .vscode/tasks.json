@@ -25,7 +25,7 @@
                 "-static",
                 "-lglfw3dll",
                 "-o",
-                "${workspaceRoot}/builds/${fileBasenameNoExtension}"
+                "${workspaceRoot}/${fileBasenameNoExtension}"
             ],
             "group": "build",
             //컴파일시 에러를 편집기에 반영
@@ -55,7 +55,7 @@
             "group": "test",
             "args": [
                 "/C",
-                "${workspaceRoot}/builds\\${fileBasenameNoExtension}"
+                "${workspaceRoot}\\${fileBasenameNoExtension}"
             ]
         }
     ]

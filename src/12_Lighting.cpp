@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <direct.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -11,6 +13,8 @@
 
 #include "shader.h"
 #include "camera.h"
+
+using namespace std;
 
 //함수 선언
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -33,6 +37,7 @@ float lastFrame = 0.0f;
 
 //광원의 위치
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 
 int main(){
     glfwInit();
@@ -60,7 +65,6 @@ int main(){
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
     //Shader 작성
     Shader lightingShader("src/shaders/12object_shader.vs", "src/shaders/12object_shader.fs");
     Shader lampShader("src/shaders/12light_shader.vs", "src/shaders/12light_shader.fs");
@@ -112,7 +116,20 @@ int main(){
          0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-};
+    };
+    //큐브의 위치
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
     
     //오브젝트 VAO
     unsigned int VBO, cubeVAO;
@@ -143,9 +160,8 @@ int main(){
     //광원 vertex위치 attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
+    
     //텍스처
-    //texture 생성
     unsigned int diffuseMap = loadTexture("textures/container2.png");
     unsigned int specularMap = loadTexture("textures/container2_specular.png");
     unsigned int emissionMap = loadTexture("textures/matrix.jpg");
@@ -171,9 +187,9 @@ int main(){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //광원 위치
-        lightPos.x = 2.0f * sin(glfwGetTime());
-        lightPos.y = 0.0f;
-        lightPos.z = 2.0f * cos(glfwGetTime());
+        //lightPos.x = 2.0f * sin(glfwGetTime());
+        //lightPos.y = 0.0f;
+        //lightPos.z = 2.0f * cos(glfwGetTime());
 
         //광원의 색 
         glm::vec3 ambientColor = glm::vec3(0.2f);
@@ -197,6 +213,17 @@ int main(){
         lightingShader.setVec3("light.diffuse", diffuseColor);
         lightingShader.setVec3("light.specular", specularColor);
         lightingShader.setVec3("light.position", lightPos);
+        //lightingShader.setVec3("light.direction", -0.2f, -0.1f, -0.3f);
+        //빛 감쇠 전달
+        lightingShader.setFloat("light.constant", 1.0f);
+        lightingShader.setFloat("light.linear", 0.09f);
+        lightingShader.setFloat("light.quadratic", 0.032f);
+        //SpotLight 전달
+        lightingShader.setVec3("light.position", camera.Position);
+        lightingShader.setVec3("light.direction", camera.Front);
+        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+
         //시점
         lightingShader.setVec3("viewPos", camera.Position);
         //오브젝트
@@ -219,16 +246,29 @@ int main(){
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, emissionMap);
+        //glActiveTexture(GL_TEXTURE2);
+        //glBindTexture(GL_TEXTURE_2D, emissionMap);
 
-        //오브젝트 랜더링
+        //오브젝트 1개 랜더링
+        //glBindVertexArray(cubeVAO);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //오브젝트 여러개 랜더링(위치 vertex값들을 사용)
         glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            lightingShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
     
 
-
         //광원 shader 활성화
+        
         lampShader.use();
         //Model
         model = glm::mat4(1.0f);
@@ -242,7 +282,7 @@ int main(){
         //광원 랜더링
         glBindVertexArray(lightVAO); 
         glDrawArrays(GL_TRIANGLES, 0, 36);
-
+        
 
         glfwSwapBuffers(window);
         glfwPollEvents();
