@@ -13,17 +13,19 @@
             "command": "g++",
             "args": [
                 "${workspaceRoot}/src/${fileBasenameNoExtension}.cpp",
-
                 "${workspaceRoot}/dependencies/GLAD/src/glad.c",
-                
                 "-g",
                 "-I${workspaceRoot}/dependencies/GLFW/include",
                 "-I${workspaceFolder}/dependencies/GLAD/include",
                 "-I${workspaceFolder}/dependencies/GLM",
+                "-I${workspaceFolder}/dependencies/ASSIMP/include",
                 "-lopengl32",
                 "-L${workspaceRoot}/dependencies/GLFW/lib-mingw-w64",
+                "-L${workspaceRoot}/dependencies/ASSIMP/lib",
                 "-static",
                 "-lglfw3dll",
+                "-l'assimp.dll'",
+                "-lzlibstatic",
                 "-o",
                 "${workspaceRoot}/${fileBasenameNoExtension}"
             ],

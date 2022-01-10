@@ -3,11 +3,11 @@
         {
             "name": "Win64",
             "includePath": [
-                "${workspaceFolder}",
+                "${workspaceFolder}/**"/* ,
                 "${workspaceFolder}/dependencies/GLFW/include",
                 "${workspaceFolder}/dependencies/GLAD/include",
                 "${workspaceFolder}/dependencies/GLM",
-                "${workspaceFolder}/src"
+                "${workspaceFolder}/src" */
             ],
             "defines": [
                 "_DEBUG",
