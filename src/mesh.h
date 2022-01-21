@@ -34,6 +34,7 @@ public:
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
+    unsigned int VAO;
     //함수
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
     {
@@ -76,7 +77,7 @@ public:
     }
 private:
     //렌더링 데이터
-    unsigned int VAO, VBO, EBO;
+    unsigned int VBO, EBO;
     void setupMesh()
     {
         glGenVertexArrays(1, &VAO);
