@@ -67,13 +67,15 @@ int main(){
         return -1;
     }
     //Shader 작성
-    Shader shader("src/shaders/15shader.vs", "src/shaders/15shader.fs");
+    Shader shader("src/shaders/15_2shader.vs", "src/shaders/15_2shader.fs");
     Shader lightShader("src/shaders/12light_shader.vs","src/shaders/12light_shader.fs");
 
     //Depth buffer 사용
     glEnable(GL_DEPTH_TEST); 
     //Multi Sampling 사용
     glEnable(GL_MULTISAMPLE);
+    //감마보정 사용
+    //glEnable(GL_FRAMEBUFFER_SRGB);
 
 
     //vertex데이터 작성
