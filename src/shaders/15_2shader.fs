@@ -15,7 +15,7 @@ uniform bool blinn;
 void main()
 {
     float gamma = 2.2;
-    vec3 color = texture(floorTexture, fs_in.TexCoords).rgb;
+    //vec3 color = texture(floorTexture, fs_in.TexCoords).rgb;
     vec3 color = pow(texture(floorTexture, fs_in.TexCoords).rgb, vec3(gamma));
     // ambient
     vec3 ambient = 0.05 * color;
@@ -41,9 +41,9 @@ void main()
     vec3 specular = vec3(0.3) * spec;
     //attenuation
     float max_distance = 1.5;
-    //float distance = length(lightPos - fs_in.FragPos);
+    float distance = length(lightPos - fs_in.FragPos);
     float attenuation = 1.0 / (distance * distance);
-    float attenuation = 1.0 / (distance);
+    //float attenuation = 1.0 / (distance);
     diffuse *= attenuation;
     specular *= attenuation;
 
