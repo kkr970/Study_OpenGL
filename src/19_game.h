@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "19_sprite_renderer.h"
+#include "19_resource_manager.h"
+
 //게임 state
 enum GameState {
     GAME_ACTIVE,
@@ -11,11 +14,13 @@ enum GameState {
     GAME_WIN
 };
 
-// Game holds all game-related state and functionality.
-// Combines all game-related data into a single class for
-// easy access to each of the components and manageability.
+//게임 클래스
 class Game
 {
+private:
+    //스프라이트 렌더러
+    SpriteRenderer *Renderer;
+
 public:
     // game state
     GameState State;	
@@ -30,13 +35,24 @@ public:
     }
     ~Game()
     {
-    
+        delete Renderer;
     }
 
     // initialize game state (load all shaders/textures/levels)
     void Init()
     {
-
+        // load shaders
+        ResourceManager::LoadShader("src/shaders/19sprite.vs", "src/shaders/19sprite.fs", nullptr, "sprite");
+        // configure shaders
+        glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), 
+            static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
+        ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
+        ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
+        // set render-specific controls
+        Shader shader = ResourceManager::GetShader("sprite");
+        Renderer = new SpriteRenderer(shader);
+        // load textures
+        ResourceManager::LoadTexture("textures/awesomeface.png", true, "face");
     }
     // game loop
     void ProcessInput(float dt)
@@ -49,7 +65,9 @@ public:
     }
     void Render()
     {
-
+        Texture2D texture = ResourceManager::GetTexture("face");
+        Renderer->DrawSprite(texture, glm::vec2(200.0f, 200.0f),
+                            glm::vec2(300.0f, 400.0f), 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     }
 };
 

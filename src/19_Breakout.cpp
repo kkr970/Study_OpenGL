@@ -38,40 +38,36 @@ int main(int argc, char *argv[])
     glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // OpenGL configuration
-    // --------------------
+
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // initialize game
-    // ---------------
+    //게임 초기화
     Breakout.Init();
 
-    // deltaTime variables
-    // -------------------
+    //타이밍 관련
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
 
+    //직교 투영 행렬 projection
+    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f);
+
     while (!glfwWindowShouldClose(window))
     {
-        // calculate delta time
-        // --------------------
+        //delta 시간
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         glfwPollEvents();
 
-        // manage user input
-        // -----------------
+        //입력
         Breakout.ProcessInput(deltaTime);
 
-        // update game state
-        // -----------------
+        //게임 state update
         Breakout.Update(deltaTime);
 
-        // render
-        // ------
+        //렌더링
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         Breakout.Render();
@@ -79,8 +75,6 @@ int main(int argc, char *argv[])
         glfwSwapBuffers(window);
     }
 
-    // delete all resources as loaded using the resource manager
-    // ---------------------------------------------------------
     ResourceManager::Clear();
 
     glfwTerminate();

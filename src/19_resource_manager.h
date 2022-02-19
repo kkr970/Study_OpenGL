@@ -34,7 +34,7 @@ public:
         Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
         return Shaders[name];
     }
-    // retrieves a stored sader
+    // retrieves a stored shader
     static Shader GetShader(std::string name)
     {
         return Shaders[name];
