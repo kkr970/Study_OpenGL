@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     glfwWindowHint(GLFW_RESIZABLE, false);
 
@@ -42,6 +43,8 @@ int main(int argc, char *argv[])
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //Multi Sampling 사용
+    glEnable(GL_MULTISAMPLE);
 
     //게임 초기화
     Breakout.Init();
