@@ -10,6 +10,7 @@
 #include "19_resource_manager.h"
 #include "19_gamelevel.h"
 #include "19_ball_object.h"
+#include "19_particle_generator.h"
 
 //게임 state
 enum GameState {
@@ -101,6 +102,7 @@ private:
     SpriteRenderer *Renderer;
     GameObject *Player;
     BallObject *Ball;
+    ParticleGenerator *Particles;
 
 public:
     // game state
@@ -120,6 +122,8 @@ public:
     {
         delete Renderer;
         delete Player;
+        delete Ball;
+        delete Particles;
     }
 
     // initialize game state (load all shaders/textures/levels)
@@ -127,20 +131,26 @@ public:
     {
         // load shaders
         ResourceManager::LoadShader("src/shaders/19sprite.vs", "src/shaders/19sprite.fs", nullptr, "sprite");
+        ResourceManager::LoadShader("src/shaders/19particle.vs", "src/shaders/19particle.fs", nullptr, "particle");
         // configure shaders
         glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), 
             static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
         ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
         ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
-        // set render-specific controls
-        Shader shader = ResourceManager::GetShader("sprite");
-        Renderer = new SpriteRenderer(shader);
+        ResourceManager::GetShader("particle").Use().SetInteger("sprite", 0);
+        ResourceManager::GetShader("particle").SetMatrix4("projection", projection); 
         // load textures
         ResourceManager::LoadTexture("textures/awesomeface.png", true, "face");
         ResourceManager::LoadTexture("textures/block.png", false, "block");
         ResourceManager::LoadTexture("textures/block_solid.png", false, "block_solid");
         ResourceManager::LoadTexture("textures/background.jpg", false, "background");
         ResourceManager::LoadTexture("textures/paddle.png", true, "paddle");
+        ResourceManager::LoadTexture("textures/particle.png", true, "particle");
+        // set render-specific controls
+        Shader renderershader = ResourceManager::GetShader("sprite");
+        Renderer = new SpriteRenderer(renderershader);
+        Shader particleshader = ResourceManager::GetShader("particle");
+        Particles = new ParticleGenerator(particleshader, ResourceManager::GetTexture("particle"), 500);
         // load levels
         GameLevel one; one.Load("resources/gamelevel/1.txt", this->Width, this->Height / 2);
         GameLevel two; two.Load("resources/gamelevel/2.txt", this->Width, this->Height / 2);
@@ -278,6 +288,8 @@ public:
         Ball->Move(dt, this->Width);
         // 충돌 감지
         this->DoCollisions();
+        // 파티클 업데이트
+        Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
         // 게임 오버
         if (Ball->Position.y >= this->Height)
         {
@@ -291,21 +303,19 @@ public:
     //게임 렌더링
     void Render()
     {
-        if(this->State == GAME_ACTIVE)
+        if (this->State == GAME_ACTIVE)
         {
-            if (this->State == GAME_ACTIVE)
-            {
-                // draw background
-                Texture2D background = ResourceManager::GetTexture("background");
-                Renderer->DrawSprite(background, glm::vec2(0.0f, 0.0f),
-                                    glm::vec2(this->Width, this->Height), 0.0f);
-                // draw level
-                this->Levels[this->Level].Draw(*Renderer);
-                // draw player
-                Player->Draw(*Renderer);
-                // draw ball
-                Ball->Draw(*Renderer);
-            }
+            // draw background
+            Texture2D background = ResourceManager::GetTexture("background");
+            Renderer->DrawSprite(background, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
+            // draw level
+            this->Levels[this->Level].Draw(*Renderer);
+            // draw player
+            Player->Draw(*Renderer);
+            // draw particlse
+            Particles->Draw();
+            // draw ball
+            Ball->Draw(*Renderer);
         }
     }
 };
