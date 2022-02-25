@@ -11,6 +11,7 @@
 #include "19_gamelevel.h"
 #include "19_ball_object.h"
 #include "19_particle_generator.h"
+#include "19_post_processor.h"
 
 //게임 state
 enum GameState {
@@ -34,6 +35,9 @@ const float PLAYER_VELOCITY(500.0f);  //속도
 const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f); //속도
 //const glm::vec2 INITIAL_BALL_VELOCITY(10.0f, -35.0f);
 const float BALL_RADIUS = 12.5f; //크기, 반지름
+
+//후처리 효과 변수
+float ShakeTime = 0.0f;
 
 //충돌데이터 튜플
 typedef std::tuple<bool, Direction, glm::vec2> Collision;
@@ -103,6 +107,7 @@ private:
     GameObject *Player;
     BallObject *Ball;
     ParticleGenerator *Particles;
+    PostProcessor *Effects;
 
 public:
     // game state
@@ -124,6 +129,7 @@ public:
         delete Player;
         delete Ball;
         delete Particles;
+        delete Effects;
     }
 
     // initialize game state (load all shaders/textures/levels)
@@ -132,6 +138,7 @@ public:
         // load shaders
         ResourceManager::LoadShader("src/shaders/19sprite.vs", "src/shaders/19sprite.fs", nullptr, "sprite");
         ResourceManager::LoadShader("src/shaders/19particle.vs", "src/shaders/19particle.fs", nullptr, "particle");
+        ResourceManager::LoadShader("src/shaders/19postprocessing.vs", "src/shaders/19postprocessing.fs", nullptr, "postprocessing");
         // configure shaders
         glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->Width), 
             static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
@@ -151,6 +158,8 @@ public:
         Renderer = new SpriteRenderer(renderershader);
         Shader particleshader = ResourceManager::GetShader("particle");
         Particles = new ParticleGenerator(particleshader, ResourceManager::GetTexture("particle"), 500);
+        Shader effectshader = ResourceManager::GetShader("postprocessing");
+        Effects = new PostProcessor(effectshader, this->Width, this->Height);
         // load levels
         GameLevel one; one.Load("resources/gamelevel/1.txt", this->Width, this->Height / 2);
         GameLevel two; two.Load("resources/gamelevel/2.txt", this->Width, this->Height / 2);
@@ -239,6 +248,11 @@ public:
                     // destroy block if not solid
                     if (!box.IsSolid)
                         box.Destroyed = true;
+                    else
+                    {   // if block is solid, enable shake effect
+                        ShakeTime = 0.05f;
+                        Effects->Shake = true;
+                    }
                     // collision resolution
                     Direction dir = std::get<1>(collision);
                     glm::vec2 diff_vector = std::get<2>(collision);
@@ -258,13 +272,14 @@ public:
                         // relocate
                         float penetration = Ball->Radius - std::abs(diff_vector.y);
                         if (dir == UP)
-                            Ball->Position.y -= penetration; // move ball back up
+                            Ball->Position.y -= penetration; // move ball bback up
                         else
                             Ball->Position.y += penetration; // move ball back down
-                    }
+                    }               
                 }
-            }
+            }    
         }
+        // check collisions for player pad (unless stuck)
         Collision result = CheckCollision(*Ball, *Player);
         if (!Ball->Stuck && std::get<0>(result))
         {
@@ -276,9 +291,11 @@ public:
             float strength = 2.0f;
             glm::vec2 oldVelocity = Ball->Velocity;
             Ball->Velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength; 
-            Ball->Velocity.y = -1.0f * abs(Ball->Velocity.y);  
-            Ball->Velocity = glm::normalize(Ball->Velocity) * glm::length(oldVelocity);
-        } 
+            //Ball->Velocity.y = -Ball->Velocity.y;
+            Ball->Velocity = glm::normalize(Ball->Velocity) * glm::length(oldVelocity); // keep speed consistent over both axes (multiply by length of old velocity, so total strength is not changed)
+            // fix sticky paddle
+            Ball->Velocity.y = -1.0f * abs(Ball->Velocity.y);
+        }
     }   
 
     //게임 상황 업데이트
@@ -290,6 +307,13 @@ public:
         this->DoCollisions();
         // 파티클 업데이트
         Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2.0f));
+        // 후처리 효과 흔들림효과 숫자가 0이 될 때 까지 흔들림을 생성함
+        if(ShakeTime > 0.0f)
+        {
+            ShakeTime -= dt;
+            if(ShakeTime <= 0.0f)
+                Effects->Shake = false;
+        }
         // 게임 오버
         if (Ball->Position.y >= this->Height)
         {
@@ -305,17 +329,23 @@ public:
     {
         if (this->State == GAME_ACTIVE)
         {
-            // draw background
-            Texture2D background = ResourceManager::GetTexture("background");
-            Renderer->DrawSprite(background, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
-            // draw level
-            this->Levels[this->Level].Draw(*Renderer);
-            // draw player
-            Player->Draw(*Renderer);
-            // draw particlse
-            Particles->Draw();
-            // draw ball
-            Ball->Draw(*Renderer);
+            // begin rendering to postprocessing framebuffer
+            Effects->BeginRender();
+                // draw background
+                Texture2D background = ResourceManager::GetTexture("background");
+                Renderer->DrawSprite(background, glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
+                // draw level
+                this->Levels[this->Level].Draw(*Renderer);
+                // draw player
+                Player->Draw(*Renderer);
+                // draw particlse
+                Particles->Draw();
+                // draw ball
+                Ball->Draw(*Renderer);
+            // end rendering to postprocessing framebuffer
+            Effects->EndRender();
+            // render postprocessing quad
+            Effects->Render(glfwGetTime());
         }
     }
 };
