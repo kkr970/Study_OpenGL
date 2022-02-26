@@ -18,10 +18,13 @@ public:
     // ball state	
     float   Radius;
     bool    Stuck;
+    bool    Sticky, PassThrough;
+
     // constructor(s)
-    BallObject() : GameObject(), Radius(12.5f), Stuck(true) { }
+    BallObject() : GameObject(), Radius(12.5f), Stuck(true), Sticky(false), PassThrough(false) { }
     BallObject(glm::vec2 pos, float radius, glm::vec2 velocity, Texture2D sprite)
-        : GameObject(pos, glm::vec2(radius * 2.0f, radius * 2.0f), sprite, glm::vec3(1.0f), velocity), Radius(radius), Stuck(true) { }
+        : GameObject(pos, glm::vec2(radius * 2.0f, radius * 2.0f), sprite, glm::vec3(1.0f), velocity), Radius(radius), Stuck(true), Sticky(false), PassThrough(false) { }
+
     // moves the ball, keeping it constrained within the window bounds (except bottom edge); returns new position
     glm::vec2 Move(float dt, unsigned int window_width)
     {
@@ -55,6 +58,8 @@ public:
         this->Position = position;
         this->Velocity = velocity;
         this->Stuck = true;
+        this->Sticky = false;
+        this->PassThrough = false;
     }
 };
 
