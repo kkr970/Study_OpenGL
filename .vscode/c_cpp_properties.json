@@ -8,6 +8,7 @@
                 "${workspaceFolder}/dependencies/GLAD/include",
                 "${workspaceFolder}/dependencies/GLM",
                 "${workspaceFolder}/dependencies/FREETYPE/include",
+                "${workspaceFolder}/dependencies/irrKlang/include",
                 "${workspaceFolder}/src" 
             ],
             "defines": [

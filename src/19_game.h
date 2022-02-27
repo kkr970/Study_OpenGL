@@ -3,6 +3,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <irrKlang.h>
 #include <vector>
 #include <tuple>
 #include <algorithm>
@@ -14,6 +15,7 @@
 #include "19_particle_generator.h"
 #include "19_post_processor.h"
 #include "19_power_ups.h"
+using namespace irrklang;
 
 //게임 state
 enum GameState {
@@ -132,6 +134,7 @@ private:
     BallObject *Ball;
     ParticleGenerator *Particles;
     PostProcessor *Effects;
+    ISoundEngine *SoundEngine = createIrrKlangDevice();
 
 public:
     // game state
@@ -155,6 +158,7 @@ public:
         delete Ball;
         delete Particles;
         delete Effects;
+        SoundEngine->drop();
     }
 
     // initialize game state (load all shaders/textures/levels)
@@ -208,6 +212,8 @@ public:
             // ball
         glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -BALL_RADIUS * 2.0f);
         Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
+        // audio engine
+        SoundEngine->play2D("resources/audio/breakout.mp3", true);
     }
     // game loop
     void ProcessInput(float dt)
@@ -286,11 +292,13 @@ public:
                     {
                         box.Destroyed = true;
                         this->SpawnPowerUps(box);
+                        SoundEngine->play2D("resources/audio/bleep.mp3", false);
                     }
                     else
                     {   // if block is solid, enable shake effect
                         ShakeTime = 0.05f;
                         Effects->Shake = true;
+                        SoundEngine->play2D("resources/audio/solid.wav", false);
                     }
                     // collision resolution
                     Direction dir = std::get<1>(collision);
@@ -336,6 +344,7 @@ public:
                     ActivatePowerUp(powerUp);
                     powerUp.Destroyed = true;
                     powerUp.Activated = true;
+                    SoundEngine->play2D("resources/audio/powerup.wav", false);
                 }
             }
         }
@@ -359,6 +368,8 @@ public:
             
             // if Sticky powerup is activated, also stick ball to paddle once new velocity vectors were calculated
             Ball->Stuck = Ball->Sticky;
+
+            SoundEngine->play2D("resources/audio/bleep.wav", false);
         }
     }  
     
